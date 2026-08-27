@@ -97,17 +97,17 @@ where \(n\) is the number of daily observations. It is computed from total retur
 
 **Annualized volatility** is the sample standard deviation of daily total returns, scaled to a year:
 
-$$\sigma = \operatorname{std}(r, \operatorname{ddof}=1) \times \sqrt{252}$$
+$$\sigma = \mathrm{std}(r, \mathrm{ddof}=1) \times \sqrt{252}$$
 
 **Sharpe** is mean excess return per unit of excess-return volatility, then annualized:
 
-$$\text{Sharpe} = \frac{\overline{r - r_f}}{\operatorname{std}(r - r_f, \operatorname{ddof}=1)} \times \sqrt{252}$$
+$$\text{Sharpe} = \frac{\overline{r - r_f}}{\mathrm{std}(r - r_f, \mathrm{ddof}=1)} \times \sqrt{252}$$
 
 If excess-return volatility is zero, Sharpe is left blank.
 
 **Sortino** uses the same numerator. The denominator is the sample standard deviation of **only the days whose excess return is negative** (days that fell short of `rf`). It is undefined if there are no such days, or if those days have no spread. Then it is annualized the same way:
 
-$$\text{Sortino} = \frac{\overline{r - r_f}}{\operatorname{std}(\{r_t - r_{f,t} : r_t - r_{f,t} < 0\})} \times \sqrt{252}$$
+$$\text{Sortino} = \frac{\overline{r - r_f}}{\mathrm{std}(\{r_t - r_{f,t} : r_t - r_{f,t} < 0\})} \times \sqrt{252}$$
 
 **Correlation** is the Pearson correlation of the two **total** daily return series. The benchmark’s own row is 1 by construction.
 
@@ -133,7 +133,7 @@ $$f(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{1}{2}\left(\frac{x-\mu}{\s
 
 **VaR 5%** is the empirical 5th percentile of daily total returns — the level that only the worst 5% of days fell at or below. **CVaR 5%** (expected shortfall) is the mean of those days:
 
-$$\text{VaR}_{0.05} = Q_{0.05}(r), \qquad \text{CVaR}_{0.05} = \operatorname{mean}\{r_t : r_t \le \text{VaR}_{0.05}\}$$
+$$\text{VaR}_{0.05} = Q_{0.05}(r), \qquad \text{CVaR}_{0.05} = \mathrm{mean}\{r_t : r_t \le \text{VaR}_{0.05}\}$$
 
 Both are returns, not positive loss amounts: a bad day is a negative number.
 
