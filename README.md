@@ -178,7 +178,7 @@ Two kinds of beta appear on the page, and they are not interchangeable:
 - **Partial beta** (tables and rolling charts): the coefficient from the multivariate OLS, with the other factors held fixed.
 - **Simple beta** (style-factor scatter charts): univariate OLS of portfolio excess returns on that one factor alone.
 
-Only **alpha** is annualized (× 252). A loading is a ratio and is left unscaled. R² is the share of portfolio **excess-return** variance the named factors explain.
+Only **alpha** is annualized (× 252). A loading is a ratio and is left unscaled. R² is the square of the correlation between portfolio excess returns and the values those factors jointly fit: the share of portfolio excess-return variance they explain.
 
 **Rolling five-factor betas** re-estimate the same FF5 equation on each trailing 21-, 63-, or 252-day window and plot the five loadings (not the window’s alpha). Dates before the window fills stay blank, as do windows whose design matrix is rank-deficient (constant or collinear regressors).
 
