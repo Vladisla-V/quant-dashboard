@@ -1,0 +1,227 @@
+SOURCES FOR nasdaq_composite_vs_sp500_daily.csv
+================================================================================
+
+File:      nasdaq_composite_vs_sp500_daily.csv
+Rows:      2,472 daily observations
+Period:    2016-08-29 to 2026-06-30
+Built:     26 August 2026
+Units:     Every numeric column is a simple (not logarithmic) daily return
+           expressed as a decimal fraction. 0.0034 means +0.34 percent.
+
+This file is a hybrid. The trading calendar, the risk-free column and the four
+style factors are downloaded from public sources and reproduced unaltered except
+for the conversions noted under each entry. The two equity columns --
+portfolio_return and benchmark_return -- are synthetic stand-ins for the NASDAQ
+Composite and the S&P 500. They were generated to avoid distributing FRED series
+marked "Copyrighted: Pre-Approval Required" while keeping the example usable
+with real Fama/French regressors on real dates.
+
+The generator is ExampleCSV/synthesize_returns.py (random seed 20260826). It
+rewrites only those two columns, field by field, and passes every other column
+through as text so date, rf, smb, hml, rmw and cma cannot drift.
+
+
+--------------------------------------------------------------------------------
+COLUMN: date
+--------------------------------------------------------------------------------
+Trading days on which all three underlying sources originally reported. Over
+this window the FRED index calendars and the Fama/French factor calendar agreed
+exactly: no date appears in one source and not the others, so no observation was
+interpolated, padded or dropped to make the join work. The calendar was kept
+unchanged when the equity columns were replaced with synthetic returns.
+
+
+--------------------------------------------------------------------------------
+COLUMN: portfolio_return  -- synthetic portfolio (NASDAQ stand-in)
+--------------------------------------------------------------------------------
+SIMULATED. This column no longer carries NASDAQ Composite data. It stands in for
+a growth-tilted portfolio measured against the synthetic benchmark below.
+
+Construction (see synthesize_returns.py):
+
+    portfolio_excess = alpha + 1.2 * (benchmark - rf) + L . F + epsilon
+
+where F is the row's (smb, hml, rmw, cma) vector and epsilon is idiosyncratic
+noise orthogonal to the market, the factors and rf. The same GARCH conditional-
+volatility path that drives the benchmark also scales epsilon, so calm and
+turbulent stretches line up across the two series.
+
+Targets, calibrated to match the dashboard's own annualization (252 trading days,
+volatility as std * sqrt(252), CAGR as compounded growth):
+
+    CAPM beta (excess returns)     1.200
+    Jensen's alpha                 +2.00% per year
+    annualized volatility          20.00%
+
+Style loadings were seeded at smb +0.25, hml -0.15, rmw +0.10, cma -0.05 and
+then nudged so the simple CAPM beta lands exactly at 1.2 despite the real factor
+columns having a small sample covariance with the synthetic market. The loadings
+the five-factor regression recovers are therefore close to, but not identical
+with, those round numbers.
+
+Original source replaced: Nasdaq OMX Group, NASDAQ Composite Index [NASDAQCOM],
+FRED, https://fred.stlouisfed.org/series/NASDAQCOM. Copyright, 2016, NASDAQ
+OMX Group, Inc.
+
+
+--------------------------------------------------------------------------------
+COLUMN: benchmark_return  -- synthetic market benchmark (S&P 500 stand-in)
+--------------------------------------------------------------------------------
+SIMULATED. This column no longer carries S&P 500 data. It is the market
+benchmark against which the portfolio is measured.
+
+Construction (see synthesize_returns.py):
+
+    1. Draw daily shocks from a GARCH(1,1) model with alpha = 0.05, beta = 0.90
+       (persistence 0.95) and unconditional variance set to (15%/sqrt(252))^2.
+    2. Scale the shock path so the sample annualized volatility is exactly 15%.
+    3. Add a constant drift so the compounded CAGR is exactly 10%.
+
+Targets:
+
+    annualized volatility          15.00%
+    CAGR (compounded)              10.00%
+
+Original source replaced: S&P Dow Jones Indices LLC, S&P 500 [SP500], FRED,
+https://fred.stlouisfed.org/series/SP500. Copyright, 2016, S&P Dow Jones
+Indices LLC. All rights reserved. Reproduction of S&P 500 in any form is
+prohibited except with the prior written permission of S&P Dow Jones Indices
+LLC.
+
+
+--------------------------------------------------------------------------------
+COLUMN: rf  -- One-month US Treasury bill, daily return
+--------------------------------------------------------------------------------
+Kenneth R. French, "Fama/French 5 Factors (2x3) [Daily]", column RF, Data
+Library, Tuck School of Business at Dartmouth College,
+https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html,
+26 August 2026.
+
+Download: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/
+          F-F_Research_Data_5_Factors_2x3_daily_CSV.zip
+
+Conversion: divided by 100, because the library publishes percent and the
+dashboard reads decimals. No other change.
+
+The header of that file defines the column as follows:
+
+    "The Tbill return is the simple daily rate that, over the number of
+     trading days, compounds to 1-month TBill rate. The 1-month TBill rate
+     data until 202405 are from Ibbotson Associates. Starting from 202406,
+     the 1-month TBill rate is from ICE BofA US 1-Month Treasury Bill Index."
+
+So this column is the daily return on a one-month US Treasury bill. Taking it
+from the same file as the factors is deliberate: it is the exact risk-free rate
+the factors were constructed against, so the excess returns the dashboard
+regresses are internally consistent with its regressors.
+
+PLEASE NOTE, because it looks wrong at first glance: rf is exactly 0.0000 on 925
+of the 2,472 rows, and on 58 percent of the rows dated before 2022. This is not
+a placeholder. The library publishes RF rounded to two decimal places in
+percent, which is a floor of 0.01 percent per day, and through the near-zero
+policy rate era of 2016 to 2021 the true daily rate fell below half of that and
+so rounds to zero at source. The largest value anywhere in the column is 0.0002,
+which is the same rounding ceiling seen from the other side during 2023 to 2025.
+Compounded across the sample the column averages 2.43 percent a year, which is
+the correct order of magnitude for the decade.
+
+
+--------------------------------------------------------------------------------
+COLUMNS: smb, hml, rmw, cma  -- Fama/French style factors
+--------------------------------------------------------------------------------
+Kenneth R. French, "Fama/French 5 Factors (2x3) [Daily]", columns SMB, HML, RMW
+and CMA, Data Library, Tuck School of Business at Dartmouth College,
+https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html,
+26 August 2026.
+
+Download: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/
+          F-F_Research_Data_5_Factors_2x3_daily_CSV.zip
+
+Conversion: divided by 100. No other change.
+
+    smb  Small Minus Big, the size factor
+    hml  High Minus Low, the value factor
+    rmw  Robust Minus Weak, the profitability factor
+    cma  Conservative Minus Aggressive, the investment factor
+
+The retrieved file states it "was created by using the 202606 CRSP database" and
+its last observation is 30 June 2026.
+
+The underlying method is described in:
+
+    Fama, Eugene F., and Kenneth R. French, 2015. "A five-factor asset pricing
+    model." Journal of Financial Economics 116(1), 1-22.
+
+    Fama, Eugene F., and Kenneth R. French, 1993. "Common risk factors in the
+    returns on stocks and bonds." Journal of Financial Economics 33(1), 3-56.
+
+Copyright 2026 Eugene F. Fama and Kenneth R. French.
+
+
+--------------------------------------------------------------------------------
+THE MARKET FACTOR IS NOT IN THIS FILE
+--------------------------------------------------------------------------------
+The dashboard derives the fifth regressor itself, as benchmark_return minus rf,
+so that a portfolio can be measured against whichever benchmark was uploaded
+rather than against a fixed US one.
+
+That derived series is not the same object as the Mkt-RF column Ken French
+publishes: theirs is the excess return on the whole CRSP value-weighted US
+market including dividends, while this file's is the excess return on the
+synthetic benchmark above. Because the benchmark is simulated, benchmark_return
+minus rf will not track French's Mkt-RF closely; it is a calibrated teaching
+series, not a reproduction of either the S&P 500 or the CRSP market portfolio.
+
+
+--------------------------------------------------------------------------------
+WHY THE SAMPLE STARTS AND ENDS WHERE IT DOES
+--------------------------------------------------------------------------------
+Start. The original build joined FRED index history to the Fama/French daily
+factors. FRED distributes only a rolling ten-year window of S&P 500 history; on
+the retrieval date the earliest available close was 26 August 2016, and a return
+needs the preceding close, so the first row is 29 August 2016.
+
+End. The Fama/French daily factors are rebuilt periodically and, on the
+retrieval date, ended 30 June 2026. FRED's index data ran two months further, to
+25 August 2026, but those extra sessions have no factor data and were excluded
+so that every row of this file is complete.
+
+The synthetic equity columns inherit this calendar unchanged. Re-running
+synthesize_returns.py with the same seed reproduces the two equity columns
+byte for byte; the real factor columns would need to be re-downloaded if the
+sample window moves.
+
+
+--------------------------------------------------------------------------------
+CHECKS RUN ON THE FINISHED FILE
+--------------------------------------------------------------------------------
+Parsing. Accepted by the dashboard's own loader with no warnings, 2,472 rows, no
+missing values, no duplicate dates, dates strictly increasing.
+
+Factors reproduce the source. Each of smb, hml, rmw, cma and rf matches the
+downloaded Fama/French file to within floating-point epsilon, that is, to the
+full precision at which it is published. These columns were not modified when
+the equity series were synthesized.
+
+Synthetic targets hit. Through the dashboard's own functions (26 August 2026):
+
+    benchmark_return   compounds to 2.55x, CAGR 10.00% a year, volatility 15.00%
+    portfolio_return   compounds to 3.34x, CAGR 13.10% a year, volatility 20.00%
+    CAPM beta          1.200   Jensen's alpha +2.00% a year   R-squared 0.810
+    correlation        0.900 between the two total-return series
+
+Five-factor loadings recovered on the full sample:
+
+    Mkt-RF  +1.200   SMB +0.255   HML -0.129   RMW +0.112   CMA -0.048
+    alpha   +2.31% a year (style premia the CAPM attributes to alpha instead)
+
+The equity columns do not reproduce any real index session. They are not meant to.
+
+
+--------------------------------------------------------------------------------
+TERMS OF USE
+--------------------------------------------------------------------------------
+The Fama/French data is made freely available for research by its authors. The
+two equity columns are synthetic and carry no provider copyright. This extract
+is included as a worked example for a personal dashboard; anyone redistributing
+the factor columns should check Ken French's current terms.

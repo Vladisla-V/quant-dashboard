@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.*
+
+# Packaging
+dist/
+build/
+*.egg-info/
+
+# Flask
+instance/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/

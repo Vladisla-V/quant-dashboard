@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Quant Dashboard - Upload{% endblock %}
+{% block status %}AWAITING INPUT{% endblock %}
+
+{% block content %}
+<div class="landing">
+<pre class="landing-ascii" aria-hidden="true">{% include "_ascii_flower.txt" %}</pre>
+
+<section class="hero">
+  <p class="hero-kicker">Portfolio vs. benchmark analytics terminal</p>
+  <h1 class="hero-title">//quantitative_dashboard</h1>
+  <p class="hero-sub">
+    Load a CSV of daily simple returns and read back the growth-of-$1 equity
+    curves, risk metrics and factor regressions for your portfolio against its
+    benchmark.
+  </p>
+</section>
+
+<div id="upload-alert" class="alert" role="alert" aria-live="polite"{% if not error %} hidden{% endif %}>{{ error or "" }}</div>
+
+<form id="upload-form" class="upload-card" action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data" novalidate>
+  <div class="block-head">
+    <span>UPLOAD YOUR <span class="block-head-id">.CSV</span> FILE HERE</span>
+  </div>
+  <div class="upload-body">
+    <label class="field">
+      <input class="file-input" type="file" name="file" accept=".csv" required />
+    </label>
+    <button type="submit" class="btn btn-primary">&gt; Run analysis</button>
+  </div>
+</form>
+
+<section class="format-note">
+  <div class="block-head">
+    <span>Expected CSV format</span>
+  </div>
+  <div class="format-note-body">
+    <p>
+      Eight columns of daily <em>simple</em> returns as decimals
+      (<code>0.001</code> = 0.1%):
+    </p>
+    <pre class="code-sample">date,portfolio_return,benchmark_return,rf,smb,hml,rmw,cma
+2023-01-03,-0.0008,0.0034,0.00017,0.0021,-0.0043,0.0009,-0.0015
+2023-01-04,-0.0068,-0.0102,0.00017,-0.0007,0.0038,-0.0012,0.0024
+2023-01-05,0.0120,0.0079,0.00017,0.0016,0.0005,0.0031,-0.0008</pre>
+    <p class="format-hint">
+      The dashboard analyses <strong>daily</strong> returns only - every
+      annualised figure on it assumes 252 observations a year, so monthly or
+      weekly data will read incorrectly.
+    </p>
+    <p class="format-hint">
+      Dates must be written <code>YYYY-MM-DD</code> and each one may appear only
+      once. Column names must match exactly, though capitalisation and
+      surrounding spaces are ignored, and rows are sorted by date before
+      compounding.
+    </p>
+    <p class="format-hint">
+      Between <strong>63</strong> rows (about a quarter) and
+      <strong>25,200</strong> rows (about a century) of trading days. A row
+      missing its date, portfolio, benchmark or risk-free return is dropped and
+      counted for you; a row missing only a style factor stays in the equity
+      curves and sits out the factor regressions.
+    </p>
+    <p class="format-hint">
+      <code>rf</code> is the risk-free return for your market - whatever baseline
+      you want Sharpe, Sortino and the CAPM fit measured against. The four style
+      factors (<code>smb</code>, <code>hml</code>, <code>rmw</code>,
+      <code>cma</code>) feed the factor regressions further down the analysis.
+    </p>
+  </div>
+</section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var form = document.getElementById("upload-form");
+  var file = form.querySelector('input[type="file"]');
+  var alertEl = document.getElementById("upload-alert");
+
+  function showError(message) {
+    alertEl.textContent = message;
+    alertEl.hidden = false;
+    file.classList.add("is-invalid");
+    file.setAttribute("aria-invalid", "true");
+  }
+
+  function clearError() {
+    alertEl.hidden = true;
+    alertEl.textContent = "";
+    file.classList.remove("is-invalid");
+    file.removeAttribute("aria-invalid");
+  }
+
+  form.addEventListener("submit", function (event) {
+    if (file.files && file.files.length) return;
+    event.preventDefault();
+    showError("Please select a file.");
+    file.focus();
+  });
+
+  file.addEventListener("change", function () {
+    if (file.files && file.files.length) clearError();
+  });
+})();
+</script>
+{% endblock %}
+

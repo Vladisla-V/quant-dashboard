@@ -1,0 +1,8 @@
+# Quant Dashboard - Python dependencies
+# Install with:  pip install -r requirements.txt
+
+flask>=3.0
+numpy>=1.24
+pandas>=2.0
+plotly>=5.18
+statsmodels>=0.14

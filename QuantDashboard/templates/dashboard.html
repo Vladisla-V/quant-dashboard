@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% block title %}Quant Dashboard - Results{% endblock %}
+{% block status %}ANALYSIS COMPLETE{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+{% endblock %}
+
+{% block content %}
+<section class="results-head">
+  <div>
+    <h1 class="results-title">Analysis results</h1>
+    <p class="results-sub">
+      <span class="mono">{{ filename }}</span> - {{ n_obs }} rows,
+      {{ start_date }} to {{ end_date }}
+    </p>
+  </div>
+  <a class="btn btn-ghost" href="{{ url_for('index') }}">&lt; New .CSV upload</a>
+</section>
+
+{% for warning in warnings %}
+<div class="alert alert-warn">{{ warning }}</div>
+{% endfor %}
+
+<section class="stat-row">
+  <div class="stat">
+    <span class="stat-label">Portfolio.final - value of $1</span>
+    <span class="stat-value accent">{{ final_portfolio }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Bench.final - value of $1</span>
+    <span class="stat-value accent-2">{{ final_benchmark }}</span>
+  </div>
+</section>
+
+<h2 class="section-title">Equity curves</h2>
+
+<section class="chart-card">
+  {{ linear_chart | safe }}
+  <p class="chart-note">
+    Linear scale: equal vertical distances represent equal dollar changes, which
+    makes recent moves on a grown portfolio look largest.
+  </p>
+</section>
+
+<section class="chart-card">
+  {{ log_chart | safe }}
+  <p class="chart-note">
+    Logarithmic scale: equal vertical distances represent equal percentage
+    changes, so growth rates are comparable across the whole period.
+  </p>
+</section>
+
+<h2 class="section-title">Performance metrics</h2>
+
+<section class="metrics-card">
+  <table class="metrics-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th class="accent">Portfolio</th>
+        <th class="accent-2">Benchmark</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>CAGR</td>
+        <td>{{ portfolio_perf.cagr }}</td>
+        <td>{{ benchmark_perf.cagr }}</td>
+      </tr>
+      <tr>
+        <td>Volatility</td>
+        <td>{{ portfolio_perf.volatility }}</td>
+        <td>{{ benchmark_perf.volatility }}</td>
+      </tr>
+      <tr>
+        <td>Max drawdown</td>
+        <td>{{ portfolio_perf.max_drawdown }}</td>
+        <td>{{ benchmark_perf.max_drawdown }}</td>
+      </tr>
+      <tr>
+        <td>Longest underwater (days)</td>
+        <td>{{ portfolio_perf.longest_underwater_days }}</td>
+        <td>{{ benchmark_perf.longest_underwater_days }}</td>
+      </tr>
+      <tr>
+        <td>Sharpe ratio</td>
+        <td>{{ portfolio_perf.sharpe }}</td>
+        <td>{{ benchmark_perf.sharpe }}</td>
+      </tr>
+      <tr>
+        <td>Sortino ratio</td>
+        <td>{{ portfolio_perf.sortino }}</td>
+        <td>{{ benchmark_perf.sortino }}</td>
+      </tr>
+      <tr>
+        <td>Correlation with benchmark</td>
+        <td>{{ portfolio_perf.correlation }}</td>
+        <td>{{ benchmark_perf.correlation }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="chart-note">
+    CAGR, volatility, Sharpe and Sortino are annualized with 252 trading days.
+    Sharpe and Sortino are measured on returns net of the risk-free column in
+    the uploaded file, so Sortino's downside is the days that fell short of that
+    rate. Max drawdown and longest underwater use the growth-of-$1 equity curve;
+    underwater days count observations spent below the prior peak.
+  </p>
+</section>
+
+<h2 class="section-title">Drawdowns</h2>
+
+<section class="chart-card">
+  {{ drawdown_chart | safe }}
+  <p class="chart-note">
+    Drawdown depth is how far each equity curve sits below its own running peak
+    on that date. The line touches zero whenever a series makes a new high, and
+    its lowest point is the max drawdown reported in the table above.
+  </p>
+</section>
+
+<section class="chart-card">
+  {{ time_underwater_chart | safe }}
+  <p class="chart-note">
+    Time underwater counts the observations elapsed since each series last set a
+    peak, so it climbs by one day for every day spent below the high-water mark
+    and resets to zero on recovery. The tallest spike is the longest underwater
+    stretch in the table above.
+  </p>
+</section>
+
+<h2 class="section-title">Rolling risk ratios</h2>
+
+{% for chart in rolling_sharpe_charts %}
+<section class="chart-card">
+  {{ chart | safe }}
+  {% if loop.last %}
+  <p class="chart-note">
+    Rolling Sharpe recomputes the table's Sharpe ratio over a trailing window
+    only, so the three charts above show how reward per unit of total volatility
+    drifted across a month, a quarter and a year of trading days rather than a
+    single figure for the whole sample. Each line starts once its window has
+    filled, and the same 252-day annualization and risk-free column apply.
+  </p>
+  {% endif %}
+</section>
+{% endfor %}
+
+{% for chart in rolling_sortino_charts %}
+<section class="chart-card">
+  {{ chart | safe }}
+  {% if loop.last %}
+  <p class="chart-note">
+    Rolling Sortino is the same idea with downside deviation in the denominator,
+    so only the days that trailed the risk-free rate inside each window count as
+    risk. Windows with fewer than two such days leave a gap in the line, which is
+    most common in the 21-day window during a strong run.
+  </p>
+  {% endif %}
+</section>
+{% endfor %}
+
+<h2 class="section-title">Return distribution</h2>
+
+<section class="chart-card">
+  {{ distribution_chart | safe }}
+  <p class="chart-note">
+    Bars are the realized spread of daily returns for each series, normalized to
+    a density so both samples are comparable, and the smooth curves are the
+    normal distributions implied by each series' mean and standard deviation.
+    Gaps between the bars and each series' own curve are what skewness and
+    excess kurtosis measure - both relative to that series' shape, not the other
+    series: negative skew means the left tail is longer, and positive excess
+    kurtosis means fat tails relative to a normal. The dashed lines mark the 5%
+    VaR, the return that only the worst 5% of days fell below, and CVaR 5% is
+    the average return across those worst days. Both are shown as returns, so
+    losses are negative.
+  </p>
+</section>
+
+<h2 class="section-title">CAPM Model</h2>
+
+<section class="stat-row">
+  <div class="stat">
+    <span class="stat-label">Beta - benchmark sensitivity</span>
+    <span class="stat-value">{{ beta }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Alpha.daily - excess above fit</span>
+    <span class="stat-value">{{ alpha }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Alpha.annual - 252 days</span>
+    <span class="stat-value">{{ alpha_annualized }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">R² - variance explained</span>
+    <span class="stat-value">{{ r_squared }}</span>
+  </div>
+</section>
+
+<section class="chart-card">
+  {{ scatter_chart | safe }}
+  <p class="chart-note">
+    Each point is one trading day and the line is the least-squares fit
+    (portfolio − rf) = alpha + beta × (benchmark − rf). Both sides are net of the
+    risk-free column in the uploaded file, so alpha is Jensen's alpha: the daily
+    return earned beyond what the portfolio's market exposure alone would have
+    paid. Annualized alpha scales that daily intercept by 252 trading days, and
+    R² is the share of portfolio excess-return variance the benchmark explains.
+  </p>
+</section>
+
+{% for chart in style_factor_scatter_charts %}
+<section class="chart-card">
+  {{ chart | safe }}
+  {% if loop.last %}
+  <p class="chart-note">
+    The same scatter repeated for each style factor from the uploaded file, with
+    the fit (portfolio − rf) = alpha + beta × factor run on that factor alone.
+    Each slope is therefore a simple beta, measuring how the portfolio moved with
+    that factor on its own, and will not match the loading of the same name in
+    the rolling five-factor charts below, where every factor is held fixed
+    against the other four.
+  </p>
+  {% endif %}
+</section>
+{% endfor %}
+
+{% if rolling_ff5_beta_charts %}
+<h2 class="section-title">Rolling Fama-French factor betas</h2>
+
+{% for chart in rolling_ff5_beta_charts %}
+<section class="chart-card">
+  {{ chart | safe }}
+  {% if loop.last %}
+  <p class="chart-note">
+    Each line is one loading from the five-factor fit
+    (portfolio − rf) = alpha + Σ beta × factor, re-estimated over a trailing
+    window ending on that date, so the three charts show how the portfolio's
+    exposures drifted across a month, a quarter and a year of trading days
+    rather than a single figure for the whole sample. Mkt-RF is the benchmark
+    net of the risk-free column - the same regressor as the CAPM beta above -
+    and SMB, HML, RMW and CMA come from the uploaded file. A line starts once
+    its window has filled, and it breaks over any window whose factors move too
+    closely together to separate their loadings.
+  </p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endif %}
+
+{% if ff5_rows or ff3_rows or capm_rows %}
+<h2 class="section-title">Factor regressions</h2>
+
+<section class="tables-grid">
+  {% if ff5_rows %}
+  <div class="panel">
+    <h3 class="panel-title">Fama-French 5-Factor Regression
+      <span class="panel-sub">R² = {{ ff5_r2 }}</span>
+    </h3>
+    <div class="panel-body">
+      <table class="factor-table">
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>β / coef</th>
+            <th>Annualized</th>
+            <th>t-stat</th>
+            <th>p-value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in ff5_rows %}
+          <tr class="{{ 'sig' if row.significant else 'insig' }}">
+            <td class="fac-name" title="{{ row.description }}">{{ row.name }}</td>
+            <td class="mono">{{ row.coef }}</td>
+            <td class="mono">{{ row.annualized }}</td>
+            <td class="mono">{{ row.tstat }}</td>
+            <td class="mono">{{ row.pvalue }}{% if row.significant %} <span class="star">*</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="table-note">* significant at the 5% level (p &lt; 0.05).</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if ff3_rows or capm_rows %}
+  <div class="panel">
+    <h3 class="panel-title">Fama-French 3-Factor &amp; CAPM
+      {% if ff3_r2 %}<span class="panel-sub">FF3 R² = {{ ff3_r2 }}</span>{% endif %}
+    </h3>
+    <div class="panel-body">
+      <table class="factor-table">
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>β / coef</th>
+            <th>Annualized</th>
+            <th>t-stat</th>
+            <th>p-value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in ff3_rows %}
+          <tr class="{{ 'sig' if row.significant else 'insig' }}">
+            <td class="fac-name" title="{{ row.description }}">{{ row.name }}</td>
+            <td class="mono">{{ row.coef }}</td>
+            <td class="mono">{{ row.annualized }}</td>
+            <td class="mono">{{ row.tstat }}</td>
+            <td class="mono">{{ row.pvalue }}{% if row.significant %} <span class="star">*</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+          {% if capm_rows %}
+          <tr class="divider-row">
+            <td colspan="5">CAPM <span class="panel-sub">R² = {{ capm_r2 }}</span></td>
+          </tr>
+          {% for row in capm_rows %}
+          <tr class="{{ 'sig' if row.significant else 'insig' }}">
+            <td class="fac-name" title="{{ row.description }}">{{ row.name }}</td>
+            <td class="mono">{{ row.coef }}</td>
+            <td class="mono">{{ row.annualized }}</td>
+            <td class="mono">{{ row.tstat }}</td>
+            <td class="mono">{{ row.pvalue }}{% if row.significant %} <span class="star">*</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<p class="chart-note tables-note">
+  Each model is fitted once over the whole sample on portfolio returns net of the
+  risk-free column, so every loading is a partial beta: what that factor explains
+  with the others held fixed, which is why it can differ from the simple beta of
+  the scatter above fitted on that factor alone. Only Alpha annualizes, by 252
+  trading days, since a loading is a ratio rather than a return per day. The
+  t-stat and p-value say whether a coefficient is distinguishable from zero, and
+  each R² is the share of portfolio excess-return variance that model explains.
+  The 5-factor and 3-factor R² are directly comparable because both are fitted
+  on the days carrying all four style factors; the CAPM needs no style factor,
+  so it is fitted on every day in the file - the same sample as the beta, alpha
+  and R² reported above - and its R² is read against a different set of days
+  whenever a row is missing one.
+</p>
+{% endif %}
+{% endblock %}
