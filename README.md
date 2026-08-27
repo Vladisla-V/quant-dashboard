@@ -67,11 +67,11 @@ That is the uploaded benchmark net of the uploaded `rf`, not Ken French’s CRSP
 
 ### 1.2 Excess returns
 
-Anything that claims to be “above cash” subtracts the uploaded risk-free column:
+**Excess return** is the series return minus the uploaded risk-free column, computed every day:
 
 $$r^{\text{excess}}_t = r_t - r_{f,t}$$
 
-Sharpe, Sortino, CAPM, and the factor models all use this difference. Growth, volatility, drawdowns, VaR, and CVaR use **total** returns — the dollars an investor actually earned.
+Sharpe, Sortino, CAPM, and the factor models all use excess returns. Growth, volatility, drawdowns, VaR, and CVaR use **total** returns — the dollars an investor actually earned.
 
 ### 1.3 Growth of $1 and CAGR
 
