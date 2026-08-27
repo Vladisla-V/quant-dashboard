@@ -129,7 +129,7 @@ The histogram is the realized spread of daily total returns, drawn as a probabil
 
 $$f(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2\right)$$
 
-**Skewness** is pandas’ sample (Fisher–Pearson) skew. Negative skew means a longer left tail than the overlay. **Excess kurtosis** is Fisher’s version: zero for a normal sample, positive when the tails are heavier than normal.
+**Skewness** measures whether large moves are more often to the downside or the upside. Negative skew means a longer left tail than the normal overlay — crash days pull harder than equally large gains. **Excess kurtosis** measures how heavy the tails are relative to a normal distribution with the same mean and volatility: zero matches that normal sample; positive means extreme days are more common than the overlay suggests.
 
 **VaR 5%** is the empirical 5th percentile of daily total returns — the level that only the worst 5% of days fell at or below. **CVaR 5%** (expected shortfall) is the mean of those days:
 
