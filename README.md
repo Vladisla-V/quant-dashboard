@@ -160,16 +160,7 @@ The scatter is this univariate OLS fit. The factor-table CAPM is the same model 
 
 The five-factor model is the CAPM with the four uploaded style premia added:
 
-$$
-(r_{p,t} - r_{f,t})
-= \alpha
-+ \beta_{\text{Mkt}}\,\text{Mkt-RF}_t
-+ \beta_{\text{SMB}}\,\text{SMB}_t
-+ \beta_{\text{HML}}\,\text{HML}_t
-+ \beta_{\text{RMW}}\,\text{RMW}_t
-+ \beta_{\text{CMA}}\,\text{CMA}_t
-+ \varepsilon_t
-$$
+$$(r_{p,t} - r_{f,t}) = \alpha + \beta_{\text{Mkt}}\,\text{Mkt-RF}_t + \beta_{\text{SMB}}\,\text{SMB}_t + \beta_{\text{HML}}\,\text{HML}_t + \beta_{\text{RMW}}\,\text{RMW}_t + \beta_{\text{CMA}}\,\text{CMA}_t + \varepsilon_t$$
 
 The **three-factor** model drops RMW and CMA. Both are fitted only on rows that have all four style factors.
 
