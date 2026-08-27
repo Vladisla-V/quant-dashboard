@@ -1,7 +1,7 @@
-SOURCES FOR nasdaq_composite_vs_sp500_daily.csv
+SOURCES FOR example_returns.csv
 ================================================================================
 
-File:      nasdaq_composite_vs_sp500_daily.csv
+File:      example_returns.csv
 Rows:      2,472 daily observations
 Period:    2016-08-29 to 2026-06-30
 Built:     26 August 2026
@@ -9,12 +9,12 @@ Units:     Every numeric column is a simple (not logarithmic) daily return
            expressed as a decimal fraction. 0.0034 means +0.34 percent.
 
 This file is a hybrid. The trading calendar, the risk-free column and the four
-style factors are downloaded from public sources and reproduced unaltered except
-for the conversions noted under each entry. The two equity columns --
-portfolio_return and benchmark_return -- are synthetic stand-ins for the NASDAQ
-Composite and the S&P 500. They were generated to avoid distributing FRED series
-marked "Copyrighted: Pre-Approval Required" while keeping the example usable
-with real Fama/French regressors on real dates.
+style factors are downloaded from Kenneth French's daily five-factor library and
+reproduced unaltered except for the conversions noted under each entry. The two
+equity columns -- portfolio_return and benchmark_return -- are calibrated
+synthetic teaching series. They are not downloads of any named index; they exist
+so the dashboard can demonstrate exact recoverable metrics on a real factor
+calendar.
 
 The generator is ExampleCSV/synthesize_returns.py (random seed 20260826). It
 rewrites only those two columns, field by field, and passes every other column
@@ -24,18 +24,17 @@ through as text so date, rf, smb, hml, rmw and cma cannot drift.
 --------------------------------------------------------------------------------
 COLUMN: date
 --------------------------------------------------------------------------------
-Trading days on which all three underlying sources originally reported. Over
-this window the FRED index calendars and the Fama/French factor calendar agreed
-exactly: no date appears in one source and not the others, so no observation was
-interpolated, padded or dropped to make the join work. The calendar was kept
-unchanged when the equity columns were replaced with synthetic returns.
+Trading days taken from the Fama/French daily five-factor file for this sample
+window. Every row has a complete factor observation; no dates were interpolated,
+padded or dropped to fill gaps. The calendar was kept unchanged when the equity
+columns were written as synthetic returns.
 
 
 --------------------------------------------------------------------------------
-COLUMN: portfolio_return  -- synthetic portfolio (NASDAQ stand-in)
+COLUMN: portfolio_return  -- synthetic portfolio
 --------------------------------------------------------------------------------
-SIMULATED. This column no longer carries NASDAQ Composite data. It stands in for
-a growth-tilted portfolio measured against the synthetic benchmark below.
+SIMULATED. A growth- and quality-tilted teaching portfolio measured against the
+synthetic benchmark below. It is not a reproduction of any real index.
 
 Construction (see synthesize_returns.py):
 
@@ -59,16 +58,12 @@ columns having a small sample covariance with the synthetic market. The loadings
 the five-factor regression recovers are therefore close to, but not identical
 with, those round numbers.
 
-Original source replaced: Nasdaq OMX Group, NASDAQ Composite Index [NASDAQCOM],
-FRED, https://fred.stlouisfed.org/series/NASDAQCOM. Copyright, 2016, NASDAQ
-OMX Group, Inc.
-
 
 --------------------------------------------------------------------------------
-COLUMN: benchmark_return  -- synthetic market benchmark (S&P 500 stand-in)
+COLUMN: benchmark_return  -- synthetic market benchmark
 --------------------------------------------------------------------------------
-SIMULATED. This column no longer carries S&P 500 data. It is the market
-benchmark against which the portfolio is measured.
+SIMULATED. The market benchmark against which the portfolio is measured. It is
+not a reproduction of any real index.
 
 Construction (see synthesize_returns.py):
 
@@ -81,12 +76,6 @@ Targets:
 
     annualized volatility          15.00%
     CAGR (compounded)              10.00%
-
-Original source replaced: S&P Dow Jones Indices LLC, S&P 500 [SP500], FRED,
-https://fred.stlouisfed.org/series/SP500. Copyright, 2016, S&P Dow Jones
-Indices LLC. All rights reserved. Reproduction of S&P 500 in any form is
-prohibited except with the prior written permission of S&P Dow Jones Indices
-LLC.
 
 
 --------------------------------------------------------------------------------
@@ -170,26 +159,23 @@ publishes: theirs is the excess return on the whole CRSP value-weighted US
 market including dividends, while this file's is the excess return on the
 synthetic benchmark above. Because the benchmark is simulated, benchmark_return
 minus rf will not track French's Mkt-RF closely; it is a calibrated teaching
-series, not a reproduction of either the S&P 500 or the CRSP market portfolio.
+series, not a reproduction of the CRSP market portfolio.
 
 
 --------------------------------------------------------------------------------
 WHY THE SAMPLE STARTS AND ENDS WHERE IT DOES
 --------------------------------------------------------------------------------
-Start. The original build joined FRED index history to the Fama/French daily
-factors. FRED distributes only a rolling ten-year window of S&P 500 history; on
-the retrieval date the earliest available close was 26 August 2016, and a return
-needs the preceding close, so the first row is 29 August 2016.
-
 End. The Fama/French daily factors are rebuilt periodically and, on the
-retrieval date, ended 30 June 2026. FRED's index data ran two months further, to
-25 August 2026, but those extra sessions have no factor data and were excluded
-so that every row of this file is complete.
+retrieval date (26 August 2026), ended 30 June 2026. That last observation is
+the last row of this file.
 
-The synthetic equity columns inherit this calendar unchanged. Re-running
-synthesize_returns.py with the same seed reproduces the two equity columns
-byte for byte; the real factor columns would need to be re-downloaded if the
-sample window moves.
+Start. The sample retains approximately a decade of trading days on that same
+calendar, beginning 29 August 2016. The synthetic equity columns inherit this
+window unchanged.
+
+Re-running synthesize_returns.py with the same seed reproduces the two equity
+columns byte for byte; the real factor columns would need to be re-downloaded if
+the sample window moves.
 
 
 --------------------------------------------------------------------------------

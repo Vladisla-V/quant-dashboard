@@ -1,11 +1,8 @@
-"""Replace the two copyrighted index columns with calibrated synthetic series.
+"""Rewrite the two equity columns of example_returns.csv as calibrated synthetics.
 
-The NASDAQ Composite and S&P 500 columns of nasdaq_composite_vs_sp500_daily.csv
-are marked "Copyrighted: Pre-Approval Required" at source, so they are swapped
-for simulated stand-ins. The risk-free column and the four Fama/French style
-factors are freely published and stay exactly as downloaded, as do the dates.
-
-Every headline figure the dashboard reports for these two columns is hit
+Dates, the risk-free column, and the four Fama/French style factors stay exactly
+as downloaded. portfolio_return and benchmark_return are teaching series: they
+are simulated so every headline figure the dashboard reports for them is hit
 exactly, not approximately:
 
     benchmark volatility        15.00% annualized
@@ -33,10 +30,9 @@ from pathlib import Path
 
 import numpy as np
 
-CSV_PATH = Path(__file__).with_name("nasdaq_composite_vs_sp500_daily.csv")
+CSV_PATH = Path(__file__).with_name("example_returns.csv")
 
-# Fixed so the file can be rebuilt byte for byte, which the real FRED download
-# it replaces could not be: that series is a rolling ten-year window.
+# Fixed so the synthetic equity columns can be rebuilt byte for byte.
 SEED = 20260826
 
 # The dashboard's own annualization factor. Anything derived here has to use the
@@ -59,8 +55,8 @@ GARCH_ARCH = 0.05
 GARCH_LAG = 0.90
 GARCH_BURN_IN = 1000
 
-# A growth and quality tilt, which is the shape a NASDAQ stand-in should have:
-# small positive size, negative value, positive profitability.
+# A growth and quality tilt: small positive size, negative value, positive
+# profitability.
 STYLE_TILTS = {"smb": 0.25, "hml": -0.15, "rmw": 0.10, "cma": -0.05}
 
 # Matches the precision the columns are already written at.

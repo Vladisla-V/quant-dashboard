@@ -177,7 +177,7 @@ Full-sample tables that cannot pin down a unique solution are omitted rather tha
 
 ### 1.10 Sample dataset
 
-[`ExampleCSV/nasdaq_composite_vs_sp500_daily.csv`](ExampleCSV/nasdaq_composite_vs_sp500_daily.csv) is a hybrid file. Dates, `rf`, and the four style factors come from Kenneth French’s daily five-factor library (percent figures converted to decimals). `portfolio_return` and `benchmark_return` are **synthetic**. They stand in for NASDAQ Composite and S&P 500 series that cannot be redistributed.
+[`ExampleCSV/example_returns.csv`](ExampleCSV/example_returns.csv) is a hybrid file. Dates, `rf`, and the four style factors come from Kenneth French’s daily five-factor library (percent figures converted to decimals). `portfolio_return` and `benchmark_return` are **synthetic** teaching series: calibrated so the dashboard recovers exact headline metrics on a real factor calendar, not stand-ins for any named index.
 
 The generator ([`ExampleCSV/synthesize_returns.py`](ExampleCSV/synthesize_returns.py)) plants targets that the dashboard’s own annualization recovers exactly: benchmark CAGR 10% and volatility 15%; portfolio CAPM beta 1.2, Jensen’s alpha +2% per year, and volatility 20%. Style tilts are seeded near SMB +0.25, HML −0.15, RMW +0.10, CMA −0.05, then adjusted so the univariate CAPM beta still lands at 1.2. The FF5 table therefore recovers loadings close to those seeds, not identical to them.
 
@@ -227,11 +227,11 @@ Open [http://127.0.0.1:5000/](http://127.0.0.1:5000/). Flask listens on port **5
 2. Click **Run Analysis**.
 3. Read the results page. **New CSV upload** returns you to the form.
 
-A ready-made file is [`ExampleCSV/nasdaq_composite_vs_sp500_daily.csv`](ExampleCSV/nasdaq_composite_vs_sp500_daily.csv) (2,472 daily rows, 2016-08-29 to 2026-06-30). Columns:
+A ready-made file is [`ExampleCSV/example_returns.csv`](ExampleCSV/example_returns.csv) (2,472 daily rows, 2016-08-29 to 2026-06-30). Columns:
 
 ```text
 date,portfolio_return,benchmark_return,rf,smb,hml,rmw,cma
-2016-08-29,0.0012,-0.0004,0.0000,0.0015,-0.0021,0.0008,-0.0003
+2016-08-29,0.03004671,0.02017556,0.0000,0.0000,0.0034,-0.0008,0.0019
 ```
 
 Use commas as the delimiter, UTF-8 text, and decimals rather than percents. Excel users should save as **CSV UTF-8**. Semicolon- or tab-delimited files, date serials, and comma decimal marks are rejected with a specific error.
