@@ -6,7 +6,7 @@ The two sections below are the whole product. The first explains every quantity 
 
 ---
 
-## Screenshots
+## Highlights
 
 ![Landing page: file picker and expected CSV format](ProjectMedia/QDscreenshot1.png)
 
@@ -40,7 +40,7 @@ The two sections below are the whole product. The first explains every quantity 
 
 ## 1. Concepts and math
 
-Every series in the upload is a **simple daily return** written as a decimal: `0.01` means +1%. The app never converts to log returns. Annualization always uses **252 trading days**, so monthly or weekly files will produce numbers that look yearly but are not.
+Every series in the upload should be a **simple daily return** written as a decimal: `0.01` meaning +1%. The app uses simple daily returns and annualizes on 252 trading days. Upload one row per trading day only - other frequencies will misstate annualized metrics.
 
 ### 1.1 What you upload
 
