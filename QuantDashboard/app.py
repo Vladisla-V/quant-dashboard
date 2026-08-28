@@ -770,7 +770,9 @@ def format_factor_table(regression: dict | None) -> list[dict]:
         pvalue = loading["pvalue"]
         rows.append({
             "name": loading["name"],
-            "coef": _signed(loading["coef"]),
+            "coef": (_signed_pct(loading["coef"], 3)
+                     if loading["name"] == "Alpha"
+                     else _signed(loading["coef"])),
             "annualized": _pct(annualized) if annualized is not None else "-",
             "tstat": _num(loading["tstat"]),
             "pvalue": _num(pvalue, 3),
